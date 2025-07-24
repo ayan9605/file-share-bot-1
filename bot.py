@@ -13,7 +13,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Welcome to QuickShare Bot! Send a file to get a shareable code.")
 
 async def upload_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    file = update.message.document or update.message.photo[-1] or update.message.video
+    file = update.message.document or update.message.photo[-1] if update.message.photo else update.message.video
     code = gen_code()
     msg = await file.forward(chat_id=config.CHANNEL_ID)
     supabase.table("files").insert({
@@ -23,7 +23,7 @@ async def upload_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "uploaded_by": str(update.message.from_user.id),
     }).execute()
     await update.message.reply_text(
-        f"✅ Alright!\nDownload code: `{code}`\nUse `/get {code}` later", parse_mode="Markdown"
+        f"✅ Alright!\nDownload code: {code}\nUse /get {code} later", parse_mode="Markdown"
     )
 
 async def get_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -42,7 +42,8 @@ async def get_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message_id=msg_id
     )
 
-if __name__ == "__main__":
+# ✅ This is the correct syntax to start the bot
+if name == "main":
     app = ApplicationBuilder().token(config.BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("get", get_file))
